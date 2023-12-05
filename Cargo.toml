@@ -1,0 +1,27 @@
+[package]
+name = "sol-tool"
+version = "0.1.0"
+edition = "2021"
+description = "Solana Tool"
+license = "Apache-2.0"
+authors = ["lihongjie arsenallihongjie<@gmail.com>"]
+keywords = ["solana", "tool"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4.10"
+rocket_cors = "0.5.2"
+serde = "1.0.130"
+serde_json = "1.0.64"
+serde_derive = "1.0.126"
+anyhow = "1.0.32"
+solana-sdk = "1.9.0"
+solana-client = "1.9.0"
+solana-transaction-status = "1.9.0"
+
+#rpc client
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+
+
+
