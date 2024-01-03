@@ -4,6 +4,8 @@
 
 pub mod api;
 pub mod node_client;
+pub mod raydium;
+pub mod pool_test;
 
 #[macro_use]
 extern crate rocket;
@@ -13,6 +15,15 @@ extern crate anyhow;
 extern crate solana_sdk;
 extern crate solana_client;
 extern crate reqwest;
+extern crate solana_program;
+extern crate serum_dex;
+extern crate num_traits;
+extern crate uint;
+extern crate spl_token;
+extern crate spl_associated_token_account;
+extern crate bytemuck;
+extern crate safe_transmute;
+extern crate thiserror;
 
 use rocket::http::Method;
 use rocket_cors::{Cors, AllowedOrigins, AllowedHeaders};
@@ -40,6 +51,7 @@ fn simulate_tx(tx: String) -> &'static str {
 }
 
 fn main() {
+    // pool_test::process_swap_base_in();
     rocket::ignite()
         .mount("/", routes![index,get_blockhash,send_tx,simulate_tx])
         .launch();
