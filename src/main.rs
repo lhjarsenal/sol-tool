@@ -26,7 +26,14 @@ extern crate safe_transmute;
 extern crate thiserror;
 
 use rocket::http::Method;
+use rocket_contrib::json::Json;
 use rocket_cors::{Cors, AllowedOrigins, AllowedHeaders};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SimulateResponse {
+    pub logs: Vec<String>,
+}
 
 #[get("/")]
 fn index() -> &'static str {
@@ -45,9 +52,11 @@ fn send_tx(tx: String) -> &'static str {
 }
 
 #[get("/simulate?<tx>")]
-fn simulate_tx(tx: String) -> &'static str {
-    api::simulate_tx(&tx);
-    "success"
+fn simulate_tx(tx: String) -> Json<SimulateResponse> {
+    let logs = api::simulate_tx(&tx);
+    Json(SimulateResponse {
+        logs
+    })
 }
 
 fn main() {

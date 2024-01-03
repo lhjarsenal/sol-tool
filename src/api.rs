@@ -30,7 +30,7 @@ pub fn send_tx(tx: &str) {
     println!("result={}", result);
 }
 
-pub fn simulate_tx(tx: &str) {
+pub fn simulate_tx(tx: &str) -> Vec<String> {
     let client = RpcClient::new(NetworkType::MainTx.url().to_string());
 
     let tx_encode = EncodedTransaction::Binary(tx.to_string(), TransactionBinaryEncoding::Base58);
@@ -51,5 +51,7 @@ pub fn simulate_tx(tx: &str) {
 
     let result = client.simulate_transaction_with_config(&transaction, config);
     println!("simulate={:?}", result);
+    let r = result.unwrap().value;
+    r.logs.unwrap()
 }
 
