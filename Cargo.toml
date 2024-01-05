@@ -33,6 +33,8 @@ spl-associated-token-account = { version = "2.2.0", features = ["no-entrypoint"]
 thiserror = "1.0.20"
 safe-transmute = "0.11.0"
 bytemuck = { version = "1.4.0" }
+bs58 = "0.5.0"
+retry = "1.3.0"
 #rpc client
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }

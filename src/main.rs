@@ -24,6 +24,7 @@ extern crate spl_associated_token_account;
 extern crate bytemuck;
 extern crate safe_transmute;
 extern crate thiserror;
+extern crate bincode;
 
 use rocket::http::Method;
 use rocket_contrib::json::Json;
@@ -61,9 +62,10 @@ fn simulate_tx(tx: String) -> Json<SimulateResponse> {
 
 fn main() {
     // pool_test::process_swap_base_in();
-    rocket::ignite()
-        .mount("/", routes![index,get_blockhash,send_tx,simulate_tx])
-        .launch();
+    api::send_v0_demo();
+    // rocket::ignite()
+    //     .mount("/", routes![index,get_blockhash,send_tx,simulate_tx])
+    //     .launch();
 }
 
 fn get_cors() -> Cors {
