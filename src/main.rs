@@ -62,10 +62,10 @@ fn simulate_tx(tx: String) -> Json<SimulateResponse> {
 
 fn main() {
     // pool_test::process_swap_base_in();
-    api::send_v0_demo();
-    // rocket::ignite()
-    //     .mount("/", routes![index,get_blockhash,send_tx,simulate_tx])
-    //     .launch();
+    // api::get_account();
+    rocket::ignite()
+        .mount("/", routes![index,get_blockhash,send_tx,simulate_tx])
+        .launch();
 }
 
 fn get_cors() -> Cors {

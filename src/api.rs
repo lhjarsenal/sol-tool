@@ -1,12 +1,10 @@
-use std::hash::Hash;
 use std::str::FromStr;
 use bincode::serialize;
-use serde::Serialize;
 use crate::node_client::NetworkType;
 use solana_client::rpc_client::RpcClient;
 use solana_transaction_status::{EncodedTransaction, TransactionBinaryEncoding, UiTransactionEncoding};
 use solana_client::rpc_request::RpcRequest;
-use solana_client::rpc_config::{RpcSendTransactionConfig, RpcSimulateTransactionAccountsConfig, RpcSimulateTransactionConfig};
+use solana_client::rpc_config::{RpcAccountInfoConfig, RpcSendTransactionConfig, RpcSimulateTransactionAccountsConfig, RpcSimulateTransactionConfig};
 use solana_sdk::commitment_config::CommitmentLevel;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
@@ -18,6 +16,16 @@ use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::system_instruction::SystemInstruction;
 use retry::{delay::Exponential, retry};
+use rocket::response::content::Json;
+use solana_client::client_error::ClientErrorKind;
+use solana_rpc_client_api::{
+    client_error::{
+        Error as ClientError, Result as ClientResult,
+    }};
+use serde::{Deserialize, Serialize};
+use solana_account_decoder::UiAccountEncoding;
+use solana_program::hash::Hash;
+use solana_transaction_status::UiTransactionEncoding::JsonParsed;
 
 pub const SOLANA_SYSTEM_ID: &str = "11111111111111111111111111111111";
 
@@ -44,8 +52,7 @@ pub fn simulate_tx(tx: &str) -> Vec<String> {
     let client = RpcClient::new(NetworkType::MainTx.url().to_string());
 
     let tx_encode = EncodedTransaction::Binary(tx.to_string(), TransactionBinaryEncoding::Base58);
-    let simulate_tx = tx_encode.decode().unwrap();
-    let mut transaction = simulate_tx.into_legacy_transaction().unwrap();
+    let tx = tx_encode.decode().unwrap();
 
     let config = RpcSimulateTransactionConfig {
         sig_verify: false,
@@ -59,7 +66,7 @@ pub fn simulate_tx(tx: &str) -> Vec<String> {
         min_context_slot: None,
     };
 
-    let result = client.simulate_transaction_with_config(&transaction, config);
+    let result = client.simulate_transaction_with_config(&tx, config);
     println!("simulate={:?}", result);
     let r = result.unwrap().value;
     r.logs.unwrap()
@@ -76,9 +83,9 @@ pub fn send_v0_demo() {
         key: address_lookup_table_key,
         addresses: address_lookup_table.addresses.to_vec(),
     };
-    println!("lookup={:?}",address_lookup_table_account);
+    println!("lookup={:?}", address_lookup_table_account);
 
-    let private_key = String::from("private");
+    let private_key = String::from("2pexWv8c7UGshhg565N3qdvV1qxLuZ19yyzxGB95cgHCWsL7yMPyYUBoHBMURypkLFCr3wFQrQ4WzwZ9rWxuW1FC");
     let keypair = Keypair::from_base58_string(&private_key);
     //创建一个lookup demo
     let user = Pubkey::from_str("3cUbuUEJkcgtzGxvsukksNzmgqaUK9jwFS5pqRpoevtN").unwrap();
@@ -96,10 +103,7 @@ pub fn send_v0_demo() {
     let instructions = vec![transfer_ix];
 
     let address_lookup_table_accounts = vec![
-        AddressLookupTableAccount {
-            key: address_lookup_table_key,
-            addresses: vec![],
-        }
+        address_lookup_table_account
     ];
 
     let recent_blockhash = client.get_latest_blockhash().unwrap();
@@ -133,8 +137,52 @@ pub fn send_v0_demo() {
         }),
         min_context_slot: None,
     };
+    let encoding = UiTransactionEncoding::Base58;
+    let serialized_encoded = serialize_and_encode(&tx, encoding).unwrap();
+    println!("tx_base58={:?}", serialized_encoded);
 
     let result = client.simulate_transaction_with_config(&tx, config);
     println!("simulate={:?}", result);
 }
 
+pub fn get_account() {
+    let client = RpcClient::new(NetworkType::MainTx.url().to_string());
+
+    //jupter address lookup
+    let address_lookup_table_key = Pubkey::from_str("CUhicobqg7htGE8XNn7n11d8k4b6jTWdifnvzQ2qrDcj").unwrap();
+    let config = RpcAccountInfoConfig{
+        encoding: Some(UiAccountEncoding::Base64),
+        data_slice: None,
+        commitment: None,
+        min_context_slot: None
+    };
+    let account = client.get_account_with_config(&address_lookup_table_key,config).unwrap().value.unwrap();
+    let address_lookup_table = AddressLookupTable::deserialize(&account.data).unwrap();
+    let address_lookup_table_account = AddressLookupTableAccount {
+        key: address_lookup_table_key,
+        addresses: address_lookup_table.addresses.to_vec(),
+    };
+    println!("data={:?}", &account.data);
+    println!("base64={:?}", Json(address_lookup_table_account));
+
+
+
+}
+
+fn serialize_and_encode<T>(input: &T, encoding: UiTransactionEncoding) -> ClientResult<String>
+    where
+        T: serde::ser::Serialize,
+{
+    let serialized = serialize(input)
+        .map_err(|e| ClientErrorKind::Custom(format!("Serialization failed: {e}")))?;
+    let encoded = match encoding {
+        UiTransactionEncoding::Base58 => bs58::encode(serialized).into_string(),
+        _ => {
+            return Err(ClientErrorKind::Custom(format!(
+                "unsupported encoding: {encoding}. Supported encodings: base58, base64"
+            ))
+                .into());
+        }
+    };
+    Ok(encoded)
+}
