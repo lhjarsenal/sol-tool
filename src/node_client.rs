@@ -21,11 +21,11 @@ pub enum NetworkType {
 impl NetworkType {
     pub fn url(&self) -> &str {
         match self {
-            //https://solana--devnet.datahub.figment.io/apikey/e5eb3da747d0b7e884cec99e3973213e
+            //https://mainnet-beta.solflare.network
             NetworkType::Devnet => "https://hk32.rpcpool.com",//https://psytrbhymqlkfrhudd.dev.genesysgo.net:8899   https://hk32.rpcpool.com
-            NetworkType::DevTx => "https://solana--devnet.datahub.figment.io/apikey/e5eb3da747d0b7e884cec99e3973213e",
+            NetworkType::DevTx => "x",
             NetworkType::Mainnet => "https://mainnet.rpcpool.com",
-            NetworkType::MainTx => "https://solana-mainnet.g.alchemy.com/v2/chOP7qwa1fC5axbN5gs0IxjuhlbaXkD1",
+            NetworkType::MainTx => "https://mainnet-beta.solflare.network/",
             NetworkType::Serum => "https://solana-api.projectserum.com",
             NetworkType::Custom(nework_opts) => &nework_opts.url,
         }

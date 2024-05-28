@@ -36,6 +36,12 @@ pub struct SimulateResponse {
     pub logs: Vec<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BlockSlotResponse {
+    pub hash: String,
+    pub slot: u64
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -46,10 +52,30 @@ fn get_blockhash() -> String {
     api::get_blockhash()
 }
 
+#[get("/get_hash_and_slot")]
+fn get_hash_and_slot() -> Json<BlockSlotResponse> {
+    let block = api::get_hash_and_slot();
+    Json(BlockSlotResponse {
+        hash: block.0,
+        slot: block.1
+    })
+}
+
+#[get("/get_slot")]
+fn get_slot() -> String {
+    api::get_slot()
+}
+
 #[get("/send_tx?<tx>")]
-fn send_tx(tx: String) -> &'static str {
-    api::send_tx(&tx);
-    "success"
+fn send_tx(tx: String) -> String {
+    let hash = api::send_tx(&tx);
+    hash
+}
+
+#[get("/close?<account>")]
+fn close(account: String) -> String {
+    let hash = api::close(&account);
+    hash
 }
 
 #[get("/simulate?<tx>")]
@@ -62,9 +88,9 @@ fn simulate_tx(tx: String) -> Json<SimulateResponse> {
 
 fn main() {
     // pool_test::process_swap_base_in();
-    // api::get_account();
+    // api::debug_base58_v0();
     rocket::ignite()
-        .mount("/", routes![index,get_blockhash,send_tx,simulate_tx])
+        .mount("/", routes![index,get_blockhash,send_tx,simulate_tx,get_hash_and_slot,get_slot,close])
         .launch();
 }
 
