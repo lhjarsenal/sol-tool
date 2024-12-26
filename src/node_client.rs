@@ -25,7 +25,7 @@ impl NetworkType {
             NetworkType::Devnet => "https://hk32.rpcpool.com",//https://psytrbhymqlkfrhudd.dev.genesysgo.net:8899   https://hk32.rpcpool.com
             NetworkType::DevTx => "x",
             NetworkType::Mainnet => "https://mainnet.rpcpool.com",
-            NetworkType::MainTx => "https://mainnet-beta.solflare.network/",
+            NetworkType::MainTx => "x",
             NetworkType::Serum => "https://solana-api.projectserum.com",
             NetworkType::Custom(nework_opts) => &nework_opts.url,
         }

@@ -28,7 +28,10 @@ use serde::{Deserialize, Serialize};
 use solana_account_decoder::UiAccountEncoding;
 use solana_program::hash::Hash;
 use solana_transaction_status::UiTransactionEncoding::JsonParsed;
-use solana_sdk::address_lookup_table::instruction::{close_lookup_table,extend_lookup_table,deactivate_lookup_table};
+use solana_sdk::address_lookup_table::instruction::{close_lookup_table, extend_lookup_table, deactivate_lookup_table};
+use crate::solfi;
+use solfi::client;
+use crate::solfi::MarketAccount;
 
 pub const SOLANA_SYSTEM_ID: &str = "11111111111111111111111111111111";
 
@@ -38,12 +41,12 @@ pub fn get_blockhash() -> String {
     recent_blockhash.to_string()
 }
 
-pub fn get_hash_and_slot() -> (String,u64) {
+pub fn get_hash_and_slot() -> (String, u64) {
     let client = RpcClient::new(NetworkType::MainTx.url().to_string());
     let config = CommitmentConfig::confirmed();
     let block = client.get_latest_blockhash_with_commitment(config).unwrap();
     let slot = client.get_slot_with_commitment(config).unwrap();
-    (block.0.to_string(),u64::from_str(&slot.to_string()).unwrap())
+    (block.0.to_string(), u64::from_str(&slot.to_string()).unwrap())
 }
 
 pub fn get_slot() -> String {
@@ -76,14 +79,13 @@ pub fn close(account: &str) -> String {
 
 pub fn close_dev(
     keypair: &Keypair,
-    account: &str
+    account: &str,
 ) -> String {
-
     let close = Pubkey::from_str(account).unwrap();
     let payer = Pubkey::from_str("x").unwrap();
     // let deactivate_ix = deactivate_lookup_table(close,payer);
     // let extend_ix=extend_lookup_table(close,payer,None,vec![payer]);
-    let close_ix = close_lookup_table(close,payer, payer);
+    let close_ix = close_lookup_table(close, payer, payer);
     let block = get_hash_and_slot();
     let recent_blockhash = Hash::from_str(&block.0).unwrap();
     let tx = Transaction::new_signed_with_payer(
@@ -116,6 +118,7 @@ pub fn simulate_tx(tx: &str) -> Vec<String> {
             addresses: vec![],
         }),
         min_context_slot: None,
+        inner_instructions: false,
     };
 
     let result = client.simulate_transaction_with_config(&tx, config);
@@ -202,6 +205,7 @@ pub fn send_v0_demo() {
             addresses: vec![],
         }),
         min_context_slot: None,
+        inner_instructions: false,
     };
     let encoding = UiTransactionEncoding::Base58;
     let serialized_encoded = serialize_and_encode(&tx, encoding).unwrap();
@@ -248,4 +252,30 @@ fn serialize_and_encode<T>(input: &T, encoding: UiTransactionEncoding) -> Client
         }
     };
     Ok(encoded)
+}
+
+pub fn get_solfi_accounts() {
+    let rpc_client = RpcClient::new(NetworkType::MainTx.url().to_string());
+    let accounts = client::fetch_live_markets_accounts(&rpc_client).unwrap();
+    println!("live accounts lens={:?}", accounts.len());
+
+    for i in 0..accounts.len() {
+        let account = accounts.get(i).unwrap();
+        println!("pubkey={:?}", account.0);
+        println!("account={:?}", account.1);
+        println!("-------------------------------------");
+    }
+
+
+}
+
+pub fn get_solfi_account() {
+    let sol = Pubkey::from_str("So11111111111111111111111111111111111111112").unwrap();
+    let usdc = Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
+    let market_account = Pubkey::from_str("CAPhoEse9xEH95XmdnJjYrZdNCA8xfUWdy3aWymHa1Vj").unwrap();
+
+    let account = client::get_canonical_market_account_address(&sol,&usdc).0;
+    let market_account = client::get_market_account_address_with_bump(&sol,&usdc,246).unwrap();
+    println!("account={:?}",account);
+    println!("market_account={:?}",market_account);
 }
