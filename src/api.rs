@@ -276,6 +276,14 @@ pub fn get_solfi_account() {
 
     let account = client::get_canonical_market_account_address(&sol,&usdc).0;
     let market_account = client::get_market_account_address_with_bump(&sol,&usdc,246).unwrap();
-    println!("account={:?}",account);
+    println!("key={:?}",account);
+    println!("market_key={:?}",market_account);
+
+    //test quote]
+    let rpc_client = RpcClient::new(NetworkType::MainTx.url().to_string());
+    let pool = Pubkey::from_str("CAPhoEse9xEH95XmdnJjYrZdNCA8xfUWdy3aWymHa1Vj").unwrap();
+    let pool_account = rpc_client.get_account(&pool).unwrap();
+
+    let market_account = *MarketAccount::load(&mut pool_account.data.as_slice()).unwrap();
     println!("market_account={:?}",market_account);
 }

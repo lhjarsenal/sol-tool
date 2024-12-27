@@ -89,10 +89,10 @@ fn simulate_tx(tx: String) -> Json<SimulateResponse> {
 
 fn main() {
     // api::get_solfi_accounts();
-    api::get_solfi_account();
-    // rocket::ignite()
-    //     .mount("/", routes![index,get_blockhash,send_tx,simulate_tx,get_hash_and_slot,get_slot,close])
-    //     .launch();
+    // api::get_solfi_account();
+    rocket::ignite()
+        .mount("/", routes![index,get_blockhash,send_tx,simulate_tx,get_hash_and_slot,get_slot,close])
+        .launch();
 }
 
 fn get_cors() -> Cors {
