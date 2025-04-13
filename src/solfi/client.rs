@@ -8,6 +8,7 @@ use solana_client::{
     rpc_filter::RpcFilterType,
 };
 use solana_sdk::pubkey::Pubkey;
+use uint::core_::mem::size_of;
 
 const SOLFI_PROGRAM_ID: &str = "SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe";
 
